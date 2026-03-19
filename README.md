@@ -1,49 +1,77 @@
-# Easy Share
+<div align="center">
+  <h1>Easy Share 🚀</h1>
+  <p><b>High-performance, ephemeral text synchronization for the modern workflow.</b></p>
 
-Easy Share is a real-time web application for sharing text and files between devices.
+  <p>
+    <a href="https://owsam22-easy-share.vercel.app"><b>Explore Live Demo</b></a> •
+    <a href="#-technical-architecture">Architecture</a> •
+    <a href="#-security--privacy">Privacy</a> •
+    <a href="#-deployment">Deployment</a>
+  </p>
 
-## Features
-- Real-time text and file sharing.
-- QR code for easy room access.
-- Secure room-based sharing.
+  <img src="https://img.shields.io/github/stars/owsam22/easy-share?style=for-the-badge&color=00C7FF" />
+  <img src="https://img.shields.io/github/license/owsam22/easy-share?style=for-the-badge&color=white" />
+  <img src="https://img.shields.io/badge/PRs-Welcome-brightgreen?style=for-the-badge" />
+</div>
 
-## Prerequisites
-- [Node.js](https://nodejs.org/) (v18 or later recommended)
-- [npm](https://www.npmjs.com/)
+---
 
-## Getting Started
+## 📈 Executive Summary
+**Easy Share** eliminates the friction of cross-device data transfer. By leveraging **WebSocket (Socket.io)** technology, it creates a secure, temporary tunnel between devices via a simple QR-handshake—removing the need for account creation, cloud storage, or permanent data footprints.
 
-Follow these steps to get the project running on your local machine.
+## 🛠 Technical Architecture
+The system is built on a **Decoupled Client-Server Model** designed for sub-100ms latency.
 
-### 1. Clone the repository
+* **Frontend Engine:** React 18+ with **Vite** for optimized HMR and **Tailwind CSS v4** for high-fidelity UI rendering.
+* **State Management:** Real-time bi-directional event emitters via **Socket.io-client**.
+* **Backend Layer:** Event-driven **Node.js** environment optimized for concurrent socket connections.
+* **Animations:** Declarative motion design using **Framer Motion** to ensure a premium user experience.
+
+---
+
+## 🔐 Security & Privacy
+In an era of data harvesting, **Easy Share** operates on a **Zero-Persistence Policy**:
+1.  **Volatile Memory:** Messages exist only in the application's runtime memory.
+2.  **Auto-Purge:** All shared data is programmatically destroyed after **60 seconds** of inactivity.
+3.  **Isolation:** Unique Room IDs generated via QR ensure session-specific tunneling.
+
+---
+
+## 🚀 Key Features
+* **Zero-Config Connection:** Direct pairing via QR-Code protocol.
+* **Universal Compatibility:** Responsive architecture optimized for iOS, Android, and Web.
+* **Bi-Directional Sync:** Simultaneous updates across linked nodes.
+* **Glassmorphic Design:** Modern, professional aesthetic with accessibility in mind.
+
+---
+
+## 🏁 Deployment & Installation
+
+### Environment Setup
 ```bash
-git clone <repository-url>
-cd "Easy Share"
-```
+# Clone the repository
+git clone [https://github.com/owsam22/easy-share.git](https://github.com/owsam22/easy-share.git)
 
-### 2. Start the Backend Server
-The backend handles real-time communication via Socket.io.
-
-```bash
+# Initialize Backend Services
 cd backend
 npm install
 npm start
-```
-By default, the backend will run on `http://localhost:5000`.
 
-### 3. Start the Frontend Application
-The frontend is built with Next.js.
-
-```bash
-cd frontend
+# Initialize Frontend Interface
+cd ../frontend
 npm install
 npm run dev
 ```
-Open `http://localhost:3000` in your browser to see the application.
+🗺️ Product Roadmap
+[ ] Phase 2: Implementation of WebRTC for P2P file tunneling.
 
-## Project Structure
-- `frontend/`: Next.js frontend application.
-- `backend/`: Express.js & Socket.io backend server.
+[ ] Phase 3: AES-256 End-to-End Encryption (E2EE) integration.
 
-## License
-[ISC](LICENSE)
+[ ] Phase 4: Desktop-native wrappers (Electron/Tauri).
+
+<div align="center">
+<sub>Built with precision by <b><a href="https://github.com/owsam22">Samarpan (owsam22)</a></b></sub>
+
+
+<sub>© 2026 Easy Share Project. All rights reserved.</sub>
+</div>
