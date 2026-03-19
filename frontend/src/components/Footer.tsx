@@ -1,5 +1,5 @@
 
-import { Github, Twitter, Linkedin, Heart } from 'lucide-react';
+import { Github, Linkedin, Heart } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -15,8 +15,8 @@ export default function Footer() {
              <a href="https://github.com/owsam22" target="_blank" className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
                <Github size={20} className="text-slate-600" />
              </a>
-             <a href="#" className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
-               <Twitter size={20} className="text-slate-600" />
+             <a href="https://linkedin.com/in/samarpan22" target="_blank" className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+               <Linkedin size={20} className="text-slate-600" />
              </a>
           </div>
           <p className="text-slate-400 text-sm font-bold flex items-center gap-1.5">
