@@ -19,7 +19,7 @@ function ShareContent() {
   const [receivedText, setReceivedText] = useState<string>('');
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [notification, setNotification] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'error' | 'role' } | null>(null);
   const [copied, setCopied] = useState(false);
   const [isTabInactive, setIsTabInactive] = useState(false);
 
@@ -79,16 +79,22 @@ function ShareContent() {
       setExpiresAt(data.expiresAt);
       if (data.text && role === 'receiver') {
         const msg = 'New message received!';
-        setNotification(msg);
+        setNotification({ message: msg, type: 'info' });
         sendBrowserNotification('Easy Share', msg);
       }
     });
     socketRef.current.on('role-swapped', (users) => {
       const me = users.find((u: any) => u.id === socketRef.current.id);
-      if (me) setRole(me.role);
+      if (me) {
+        setRole(me.role);
+        setNotification({ 
+          message: `You are now the ${me.role === 'sender' ? 'Sender' : 'Receiver'}`, 
+          type: 'role' 
+        });
+      }
     });
     socketRef.current.on('notification', (msg) => {
-      setNotification(msg);
+      setNotification({ message: msg, type: 'info' });
       sendBrowserNotification('Easy Share', msg);
     });
     return () => {
@@ -139,8 +145,14 @@ function ShareContent() {
   };
 
   const handleCopy = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setNotification({ message: 'Link copied to clipboard!', type: 'success' });
+  };
+
+  const handleCopyReceived = () => {
     navigator.clipboard.writeText(receivedText);
     setCopied(true);
+    setNotification({ message: 'Text copied to clipboard!', type: 'success' });
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -149,12 +161,12 @@ function ShareContent() {
       const clipboardText = await navigator.clipboard.readText();
       if (clipboardText) {
         setText(clipboardText);
-        setNotification('Text pasted!');
+        setNotification({ message: 'Text pasted from clipboard!', type: 'success' });
       } else {
-        setNotification('Clipboard is empty');
+        setNotification({ message: 'Clipboard is empty', type: 'info' });
       }
     } catch (err) {
-      setNotification('Need permission to paste');
+      setNotification({ message: 'Need permission to paste', type: 'error' });
     }
   };
 
@@ -183,10 +195,7 @@ function ShareContent() {
                     <p className="text-xs font-bold text-slate-600">Scan this code with your phone camera.</p>
                  </div>
                  <button 
-                  onClick={() => {
-                    navigator.clipboard.writeText(shareUrl);
-                    setNotification('Link copied to clipboard!');
-                  }}
+                  onClick={handleCopy}
                   className="w-full py-4 bg-white border-2 border-slate-100 hover:border-blue-200 rounded-2xl font-bold text-slate-700 flex items-center justify-center gap-2 transition-all"
                  >
                     <Copy size={18} />
@@ -296,7 +305,7 @@ function ShareContent() {
                                )}
                             </div>
                             <button
-                              onClick={handleCopy}
+                              onClick={handleCopyReceived}
                               disabled={!receivedText}
                               className={`w-full py-5 rounded-3xl font-black text-xl shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3 ${copied ? 'bg-green-500 text-white' : 'bg-slate-800 hover:bg-black text-white disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none'}`}
                             >
@@ -340,10 +349,17 @@ function ShareContent() {
 
       {notification && (
         <div className="fixed top-10 right-10 bg-slate-900 text-white px-6 py-4 rounded-2xl font-bold shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-300 z-[100]">
-           <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-              <Check size={12} strokeWidth={3} />
+           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+             notification.type === 'success' ? 'bg-green-500' : 
+             notification.type === 'role' ? 'bg-purple-500' : 
+             notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+           }`}>
+              {notification.type === 'success' && <Check size={14} strokeWidth={3} />}
+              {notification.type === 'role' && <RefreshCw size={14} strokeWidth={3} />}
+              {notification.type === 'error' && <Info size={14} strokeWidth={3} />}
+              {notification.type === 'info' && <Bell size={14} strokeWidth={3} />}
            </div>
-           {notification}
+           {notification.message}
         </div>
       )}
     </div>

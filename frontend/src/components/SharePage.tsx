@@ -12,7 +12,7 @@ export default function SharePage() {
   const [receivedText, setReceivedText] = useState<string>('');
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [timeLeft, setTimeLeft] = useState<number>(0);
-  const [notification, setNotification] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'error' | 'role' } | null>(null);
   const [copied, setCopied] = useState(false);
   const [isTabInactive, setIsTabInactive] = useState(false);
 
@@ -58,23 +58,29 @@ export default function SharePage() {
       setExpiresAt(data.expiresAt);
       if (data.text && role === 'receiver') {
         const msg = 'New message received!';
-        setNotification(msg);
+        setNotification({ message: msg, type: 'info' });
         sendBrowserNotification('Easy Share', msg);
       }
     });
 
     socketRef.current.on('role-swapped', (users) => {
       const me = users.find((u: any) => u.id === socketRef.current.id);
-      if (me) setRole(me.role);
+      if (me) {
+        setRole(me.role);
+        setNotification({ 
+          message: `You are now the ${me.role === 'sender' ? 'Sender' : 'Receiver'}`, 
+          type: 'role' 
+        });
+      }
     });
 
     socketRef.current.on('notification', (msg) => {
-      setNotification(msg);
+      setNotification({ message: msg, type: 'info' });
       sendBrowserNotification('Easy Share', msg);
     });
 
     socketRef.current.on('error', (msg) => {
-      setNotification(`Error: ${msg}`);
+      setNotification({ message: `Error: ${msg}`, type: 'error' });
     });
 
     return () => {
@@ -129,6 +135,7 @@ export default function SharePage() {
   const handleCopy = () => {
     navigator.clipboard.writeText(receivedText);
     setCopied(true);
+    setNotification({ message: 'Text copied to clipboard!', type: 'success' });
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -189,7 +196,7 @@ export default function SharePage() {
               <button 
                 onClick={() => {
                   navigator.clipboard.writeText(shareUrl);
-                  setNotification('Link copied!');
+                  setNotification({ message: 'Link copied!', type: 'success' });
                 }}
                 className="p-2 text-slate-400 hover:text-white transition-colors"
               >
@@ -282,8 +289,17 @@ export default function SharePage() {
 
       {notification && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-100 text-slate-950 px-6 py-3 rounded-full font-bold shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300 z-50">
-          <Bell size={18} />
-          {notification}
+          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+            notification.type === 'success' ? 'bg-green-500 text-white' : 
+            notification.type === 'role' ? 'bg-purple-500 text-white' : 
+            notification.type === 'error' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+          }`}>
+             {notification.type === 'success' && <Check size={14} strokeWidth={3} />}
+             {notification.type === 'role' && <RefreshCw size={14} strokeWidth={3} />}
+             {notification.type === 'error' && <Info size={14} strokeWidth={3} />}
+             {notification.type === 'info' && <Bell size={14} strokeWidth={3} />}
+          </div>
+          {notification.message}
         </div>
       )}
 
