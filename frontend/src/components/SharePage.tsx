@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Share2, Copy, Check, RefreshCw, Smartphone, Monitor, 
-  Shield, Zap, Send, Info, Bell, Trash2, Clock 
+  Share2, Copy, Check, RefreshCw, 
+  Zap, Send, Info, Bell, Clock 
 } from 'lucide-react';
 import { socket } from '../lib/socket';
 import Header from './Header';
@@ -11,7 +11,6 @@ import Footer from './Footer';
 
 export default function SharePage() {
   const { roomId } = useParams();
-  const [searchParams] = useSearchParams();
   const [isConnected, setIsConnected] = useState(false);
   const [role, setRole] = useState<'sender' | 'receiver' | null>(null);
   const [userCount, setUserCount] = useState<number>(0);
