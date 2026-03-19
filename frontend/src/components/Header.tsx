@@ -1,6 +1,6 @@
 'use client';
 
-import { Share2 } from 'lucide-react';
+import { Share2, Loader2 } from 'lucide-react';
 
 export default function Header({ connected }: { connected: boolean }) {
   return (
@@ -14,9 +14,13 @@ export default function Header({ connected }: { connected: boolean }) {
         </h1>
       </div>
 
-      <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-xs ${connected ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-blue-100 text-blue-700 border border-blue-200'}`}>
-        <div className={`w-2 h-2 rounded-full ${connected ? 'bg-green-500 animate-pulse' : 'bg-blue-400'}`} />
-        <span>{connected ? 'Device Linked' : 'Connecting...'}</span>
+      <div className={`flex items-center gap-2 px-4 py-2 rounded-full font-bold text-[10px] uppercase tracking-wider transition-all duration-500 ${connected ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
+        {connected ? (
+          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+        ) : (
+          <Loader2 size={12} className="animate-spin" />
+        )}
+        <span>{connected ? 'Device Linked' : 'Connecting to Server...'}</span>
       </div>
     </header>
   );
