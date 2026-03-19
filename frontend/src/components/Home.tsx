@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   ArrowRight, Bell, Check, Clipboard, Clock, Copy, Info, 
-  Monitor, RefreshCw, Send, Smartphone, Trash2, Zap 
+  Monitor, RefreshCw, Smartphone 
 } from 'lucide-react';
 import { socket } from '../lib/socket';
 import Header from './Header';
