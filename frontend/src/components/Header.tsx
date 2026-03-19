@@ -1,4 +1,3 @@
-'use client';
 
 import { Share2, Loader2 } from 'lucide-react';
 

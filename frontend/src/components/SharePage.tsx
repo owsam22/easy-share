@@ -1,12 +1,11 @@
-'use client';
-
 import { useState, useEffect, useRef, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import { Copy, RefreshCw, Send, Check, Monitor, Smartphone, Clock, Bell, Info } from 'lucide-react';
-import { socket } from '@/lib/socket';
+import { socket } from '../lib/socket';
 
-export default function SharePage({ params }: { params: { roomId: string } }) {
-  const { roomId } = params;
+export default function SharePage() {
+  const { roomId } = useParams<{ roomId: string }>();
   const [role, setRole] = useState<'sender' | 'receiver' | null>(null);
   const [userCount, setUserCount] = useState<number>(0);
   const [text, setText] = useState<string>('');
@@ -19,7 +18,6 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
 
   const socketRef = useRef(socket);
 
-  // Connection URL for QR and sharing
   const shareUrl = useMemo(() => {
     if (typeof window !== 'undefined') {
       return `${window.location.origin}/s/${roomId}`;
@@ -27,20 +25,13 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
     return '';
   }, [roomId]);
 
-  // Handle browser notifications
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
       Notification.requestPermission();
     }
-
-    const handleVisibilityChange = () => {
-      setIsTabInactive(document.hidden);
-    };
-
+    const handleVisibilityChange = () => setIsTabInactive(document.hidden);
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   const sendBrowserNotification = (title: string, body: string) => {
@@ -49,8 +40,8 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
     }
   };
 
-  // Socket management
   useEffect(() => {
+    if (!roomId) return;
     socketRef.current.connect();
     socketRef.current.emit('join-room', roomId);
 
@@ -58,7 +49,6 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
       setUserCount(data.userCount);
       const me = data.users.find((u: any) => u.id === socketRef.current.id);
       if (me) setRole(me.role);
-      
       setReceivedText(data.text || '');
       setExpiresAt(data.expiresAt);
     });
@@ -97,7 +87,6 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
     };
   }, [roomId, role, isTabInactive]);
 
-  // Timer logic
   useEffect(() => {
     if (!expiresAt) {
       setTimeLeft(0);
@@ -119,7 +108,6 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
     return () => clearInterval(interval);
   }, [expiresAt]);
 
-  // Notifications timeout
   useEffect(() => {
     if (notification) {
       const timer = setTimeout(() => setNotification(null), 3000);
@@ -130,7 +118,7 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
   const handleSend = () => {
     if (text.trim()) {
       socketRef.current.emit('send-text', text);
-      setText(''); // Clear textarea after send
+      setText('');
     }
   };
 
@@ -146,7 +134,6 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col p-4 md:p-8 font-sans transition-all duration-500">
-      {/* Status Bar */}
       <div className="max-w-4xl w-full mx-auto flex items-center justify-between bg-slate-900/50 backdrop-blur-md border border-slate-800 p-4 rounded-2xl mb-8 shadow-2xl">
         <div className="flex items-center gap-3">
           <div className={`w-3 h-3 rounded-full ${userCount === 2 ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
@@ -178,7 +165,6 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
 
       <div className="max-w-4xl w-full mx-auto flex-1 flex flex-col items-center justify-center">
         {userCount < 2 ? (
-          /* Waiting State - Show QR */
           <div className="flex flex-col items-center gap-8 animate-in fade-in zoom-in duration-700">
             <div className="p-6 bg-white rounded-3xl shadow-2xl transition-transform hover:scale-105 duration-300">
               <QRCodeSVG value={shareUrl} size={220} level="H" />
@@ -212,11 +198,8 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
             </div>
           </div>
         ) : (
-          /* Connected State - Main Exchange */
           <div className="w-full space-y-8 animate-in slide-in-from-bottom-5 duration-500">
-            
             {role === 'sender' ? (
-              /* SENDER VIEW */
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between mb-2">
                    <h3 className="text-lg font-medium flex items-center gap-2">
@@ -243,7 +226,6 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
                 </button>
               </div>
             ) : (
-              /* RECEIVER VIEW */
               <div className="flex flex-col gap-4">
                 <div className="flex items-center justify-between mb-2">
                    <h3 className="text-lg font-medium flex items-center gap-2 text-purple-400">
@@ -285,8 +267,6 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
                 </button>
               </div>
             )}
-
-            {/* Placeholder for future file sharing */}
             <div className="pt-4 border-t border-slate-900">
               <button 
                 disabled 
@@ -300,7 +280,6 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
         )}
       </div>
 
-      {/* Inline Notifications */}
       {notification && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-100 text-slate-950 px-6 py-3 rounded-full font-bold shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-300 z-50">
           <Bell size={18} />
@@ -308,7 +287,6 @@ export default function SharePage({ params }: { params: { roomId: string } }) {
         </div>
       )}
 
-      {/* Footer Info */}
       <footer className="mt-8 text-center">
         <p className="text-slate-600 text-xs flex items-center justify-center gap-1">
           <Info size={12} />

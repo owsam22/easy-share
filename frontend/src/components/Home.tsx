@@ -1,16 +1,14 @@
-'use client';
-
 import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import { QRCodeSVG } from 'qrcode.react';
-import { Copy, RefreshCw, Send, Check, Monitor, Smartphone, Clock, Bell, Info, ArrowRight, Clipboard } from 'lucide-react';
-import { socket } from '@/lib/socket';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import { Copy, RefreshCw, Check, Monitor, Smartphone, Clock, Bell, Info, ArrowRight, Clipboard } from 'lucide-react';
+import { socket } from '../lib/socket';
+import Header from './Header';
+import Footer from './Footer';
 
 function ShareContent() {
-  const searchParams = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const roomIdFromUrl = searchParams.get('room');
 
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -34,10 +32,10 @@ function ShareContent() {
       } else {
         const newRoomId = uuidv4();
         setRoomId(newRoomId);
-        window.history.replaceState(null, '', `?room=${newRoomId}`);
+        setSearchParams({ room: newRoomId }, { replace: true });
       }
     }
-  }, [roomIdFromUrl]);
+  }, [roomIdFromUrl, setSearchParams]);
 
   const shareUrl = useMemo(() => {
     if (typeof window !== 'undefined' && roomId) {
@@ -165,8 +163,6 @@ function ShareContent() {
       <Header connected={isConnected} />
 
       <main className="flex-1 w-full max-w-4xl mx-auto px-6 py-10 flex flex-col">
-        
-        {/* Simplified Intro */}
         <div className="text-center space-y-4 mb-12">
            <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight">
              Share Text Instantly.
@@ -177,19 +173,15 @@ function ShareContent() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
-           
-           {/* Connection Card */}
            <div className="md:col-span-5 bg-white p-8 rounded-[2.5rem] shadow-xl shadow-blue-500/5 border border-white space-y-8 flex flex-col items-center">
               <div className="bg-blue-50 p-4 rounded-3xl w-full flex flex-col items-center">
                  <QRCodeSVG value={shareUrl} size={200} level="H" includeMargin className="rounded-xl" />
               </div>
-              
               <div className="w-full space-y-4">
                  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                     <Info size={16} className="text-blue-500 shrink-0" />
                     <p className="text-xs font-bold text-slate-600">Scan this code with your phone camera.</p>
                  </div>
-                 
                  <button 
                   onClick={() => {
                     navigator.clipboard.writeText(shareUrl);
@@ -203,7 +195,6 @@ function ShareContent() {
               </div>
            </div>
 
-           {/* Action Card */}
            <div className="md:col-span-7 space-y-6">
               {!isConnected && (
                  <div className="bg-white p-10 rounded-[2.5rem] border-2 border-dashed border-blue-100 flex flex-col items-center justify-center min-h-[400px] text-center space-y-6">
@@ -320,7 +311,6 @@ function ShareContent() {
            </div>
         </div>
 
-        {/* Feature Highlights */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
            <div className="bg-white p-6 rounded-3xl border border-slate-100 hover:shadow-lg transition-shadow">
               <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 mb-4">
@@ -348,7 +338,6 @@ function ShareContent() {
 
       <Footer />
 
-      {/* Floating Notification */}
       {notification && (
         <div className="fixed top-10 right-10 bg-slate-900 text-white px-6 py-4 rounded-2xl font-bold shadow-2xl flex items-center gap-4 animate-in fade-in slide-in-from-top-4 duration-300 z-[100]">
            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">

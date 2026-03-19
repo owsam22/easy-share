@@ -1,4 +1,3 @@
-'use client';
 
 import { Github, Twitter, Linkedin, Heart } from 'lucide-react';
 
