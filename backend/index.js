@@ -48,8 +48,8 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Role assignment: first user is Sender, second is Receiver
-    const role = room.users.length === 0 ? 'sender' : 'receiver';
+    // Role assignment: first user is Receiver, second is Sender
+    const role = room.users.length === 0 ? 'receiver' : 'sender';
     const user = { id: socket.id, role };
     room.users.push(user);
     

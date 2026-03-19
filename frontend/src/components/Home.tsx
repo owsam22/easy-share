@@ -1,8 +1,12 @@
 import { useState, useEffect, useRef, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
+import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
-import { Copy, RefreshCw, Check, Monitor, Smartphone, Clock, Bell, Info, ArrowRight, Clipboard } from 'lucide-react';
+import { 
+  ArrowRight, Bell, Check, Clipboard, Clock, Copy, Info, 
+  Monitor, RefreshCw, Send, Smartphone, Trash2, Zap 
+} from 'lucide-react';
 import { socket } from '../lib/socket';
 import Header from './Header';
 import Footer from './Footer';
@@ -62,11 +66,14 @@ function ShareContent() {
   useEffect(() => {
     if (!roomId) return;
     socketRef.current.connect();
+    
     socketRef.current.on('connect', () => {
       setIsConnected(true);
       socketRef.current.emit('join-room', roomId);
     });
+
     socketRef.current.on('disconnect', () => setIsConnected(false));
+
     socketRef.current.on('room-status', (data) => {
       setUserCount(data.userCount);
       const me = data.users.find((u: any) => u.id === socketRef.current.id);
@@ -74,6 +81,7 @@ function ShareContent() {
       setReceivedText(data.text || '');
       setExpiresAt(data.expiresAt);
     });
+
     socketRef.current.on('text-updated', (data) => {
       setReceivedText(data.text);
       setExpiresAt(data.expiresAt);
@@ -83,6 +91,7 @@ function ShareContent() {
         sendBrowserNotification('Easy Share', msg);
       }
     });
+
     socketRef.current.on('role-swapped', (users) => {
       const me = users.find((u: any) => u.id === socketRef.current.id);
       if (me) {
@@ -93,10 +102,12 @@ function ShareContent() {
         });
       }
     });
+
     socketRef.current.on('notification', (msg) => {
       setNotification({ message: msg, type: 'info' });
       sendBrowserNotification('Easy Share', msg);
     });
+
     return () => {
       socketRef.current.off('connect');
       socketRef.current.off('disconnect');
@@ -137,10 +148,11 @@ function ShareContent() {
     if (text.trim() && isConnected) {
       socketRef.current.emit('send-text', text);
       setText('');
+      setNotification({ message: 'Text sent!', type: 'success' });
     }
   };
 
-  const handleSwitchRoll = () => {
+  const switchRole = () => {
     if (isConnected) socketRef.current.emit('switch-role');
   };
 
@@ -242,7 +254,7 @@ function ShareContent() {
                  <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-blue-600/10 border border-white min-h-[400px] flex flex-col">
                     <div className="flex items-center justify-between mb-8">
                        <div className="flex items-center gap-3">
-                          <div className={`px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest ${role === 'sender' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'}`}>
+                          <div className={`px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest ${role === 'sender' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
                              You are: {role}
                           </div>
                           {expiresAt && (
@@ -253,7 +265,7 @@ function ShareContent() {
                           )}
                        </div>
                        <button 
-                        onClick={handleSwitchRoll}
+                        onClick={switchRole}
                         className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-800 rounded-xl transition-all border border-slate-100 shadow-sm"
                         title="Switch Role"
                        >
@@ -263,8 +275,16 @@ function ShareContent() {
                     </div>
 
                     <div className="flex-1 flex flex-col gap-6">
-                       {role === 'sender' ? (
-                         <>
+                      <AnimatePresence mode="wait">
+                        {role === 'sender' ? (
+                          <motion.div
+                            key="sender"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                            className="flex-1 flex flex-col gap-6"
+                          >
                             <div className="relative group flex-1 flex flex-col">
                                <textarea
                                  value={text}
@@ -282,16 +302,23 @@ function ShareContent() {
                                </button>
                             </div>
                             <button
-                              onClick={handleSend}
-                              disabled={!text.trim()}
-                              className="w-full py-5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-3xl font-black text-xl shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
+                               onClick={handleSend}
+                               disabled={!text.trim()}
+                               className="w-full py-5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-3xl font-black text-xl shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
                             >
                                Send Text
                                <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
                             </button>
-                         </>
-                       ) : (
-                         <>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="receiver"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                            className="flex-1 flex flex-col gap-6"
+                          >
                             <div className={`w-full flex-1 p-8 rounded-3xl flex items-center justify-center text-center transition-all ${receivedText ? 'bg-green-50/50' : 'bg-slate-50 border-2 border-dashed border-slate-200'}`}>
                                {receivedText ? (
                                  <p className="text-2xl font-bold text-slate-800 break-words leading-relaxed">
@@ -312,8 +339,9 @@ function ShareContent() {
                                {copied ? <Check size={20} /> : <Copy size={20} />}
                                {copied ? 'Copied!' : 'Copy Received Text'}
                             </button>
-                         </>
-                       )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                  </div>
               )}
