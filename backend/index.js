@@ -4,12 +4,12 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
 
-const app = express();
-app.use(cors());
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
 
-const server = http.createServer(app);
-
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+app.use(cors({
+  origin: FRONTEND_URL,
+  methods: ['GET', 'POST'],
+}));
 
 const io = new Server(server, {
   cors: {
