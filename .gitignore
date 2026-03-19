@@ -1,6 +1,9 @@
 # Dependencies
 backend/node_modules
 frontend/node_modules
+frontend/AGENTS.md
+frontend/CLAUDE.md
+
 frontend/.pnp
 frontend/.pnp.*
 frontend/.yarn/*
@@ -37,4 +40,4 @@ frontend/.vercel
 
 # TypeScript
 frontend/*.tsbuildinfo
-frontend/next-env.d.ts
+frontend/next-env.d.ts
