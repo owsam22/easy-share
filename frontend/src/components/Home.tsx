@@ -340,28 +340,28 @@ function ShareContent() {
                  </motion.button>
               )}
               <motion.div
-                animate={{ rotateY: shareType === 'file' ? 180 : 0 }}
+                animate={{ rotateY: (shareType === 'file' && isConnected && userCount >= 2) ? 180 : 0 }}
                 transition={{ duration: 0.8, type: 'spring', stiffness: 260, damping: 20 }}
                 style={{ transformStyle: 'preserve-3d' }}
                 className="w-full h-full"
               >
                  {/* FRONT: Text Sync Stages */}
                  <div className="w-full h-full [backface-visibility:hidden] space-y-6">
-                    {!isConnected && (
-                       <div className="bg-white p-10 rounded-[2.5rem] border-2 border-dashed border-blue-100 flex flex-col items-center justify-center min-h-[400px] text-center space-y-6">
+                                         {userCount < 2 && (
+                       <div className={`bg-white p-10 rounded-[2.5rem] border-2 flex flex-col items-center justify-center min-h-[400px] text-center space-y-6 transition-colors duration-500 ${isConnected ? 'border-green-100 shadow-xl shadow-green-500/5' : 'border-dashed border-blue-100 shadow-sm'}`}>
                           <img 
                             src="https://media1.tenor.com/m/0chWb5VggvAAAAAd/pizzaninjas-pizza-ninjas.gif" 
                             alt="Ninja" 
                             className="w-40 h-40 animate-bounce"
                           />
                           <div className="space-y-2">
-                             <h3 className="text-xl font-bold text-slate-800">Waiting for Device...</h3>
-                             <p className="text-sm text-slate-400 font-medium">Once a device scans the code, sharing will begin.</p>
+                             <h3 className="text-2xl font-black text-slate-800 tracking-tight">{!isConnected ? 'Connecting to Server...' : 'Waiting for Device...'}</h3>
+                             <p className="text-sm text-slate-500 font-medium max-w-sm mx-auto">{!isConnected ? 'Establishing a secure connection to the backend infrastructure.' : 'Server connected! Once a device scans the QR code, sharing will begin.'}</p>
                           </div>
                        </div>
                     )}
 
-                    {isConnected && userCount < 2 && (
+                    {false && (
                        <div className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-blue-500/5 border border-white flex flex-col items-center justify-center min-h-[400px] text-center space-y-8">
                           <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
                              <Smartphone size={32} strokeWidth={2.5} />

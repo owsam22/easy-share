@@ -198,7 +198,7 @@ export default function SharePage() {
 
                 <div className="relative [perspective:2000px] w-full max-w-2xl min-h-[400px]">
                    <motion.div
-                     animate={{ rotateY: shareType === 'file' ? 180 : 0 }}
+                     animate={{ rotateY: (shareType === 'file' && isConnected && userCount >= 2) ? 180 : 0 }}
                      transition={{ duration: 0.8, type: 'spring', stiffness: 260, damping: 20 }}
                      style={{ transformStyle: 'preserve-3d' }}
                      className="w-full h-full"
