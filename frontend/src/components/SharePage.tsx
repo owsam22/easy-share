@@ -272,13 +272,15 @@ export default function SharePage() {
                                        </div>
                                     )}
                                  </div>
-                                 <button 
-                                   onClick={switchRole}
-                                   className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl transition-all border border-slate-700 active:scale-95 group"
-                                 >
-                                    <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
-                                    <span className="text-[10px] font-black uppercase tracking-wider">Switch Role</span>
-                                 </button>
+                                 {role === 'receiver' && (
+                                   <button 
+                                     onClick={switchRole}
+                                     className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl transition-all border border-slate-700 active:scale-95 group"
+                                   >
+                                      <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
+                                      <span className="text-[10px] font-black uppercase tracking-wider">Send from here</span>
+                                   </button>
+                                 )}
                               </div>
 
                               <AnimatePresence mode="wait">

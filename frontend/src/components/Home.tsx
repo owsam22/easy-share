@@ -27,7 +27,10 @@ function ShareContent() {
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'error' | 'role' } | null>(null);
   const [copied, setCopied] = useState(false);
   const [shareType, setShareType] = useState<'text' | 'file'>('text');
-
+  
+  // New state for QR code visibility
+  const [showQR, setShowQR] = useState(true);
+  const [forceShowQR, setForceShowQR] = useState(false);
 
   const socketRef = useRef(socket);
 
@@ -142,6 +145,18 @@ function ShareContent() {
     };
   }, []);
 
+  // Effect to automatically hide/show the QR code 
+  useEffect(() => {
+    if (userCount >= 2) {
+      setShowQR(false);
+    } else {
+      setShowQR(true);
+      setForceShowQR(false); // reset force state when it automatically shows
+    }
+  }, [userCount]);
+
+  const isQRVisible = showQR || forceShowQR;
+
   const handleShareTypeChange = (newType: 'text' | 'file') => {
     setShareType(newType);
     if (isConnected) {
@@ -222,61 +237,108 @@ function ShareContent() {
            </p>
         </div>
 
-        <div className="flex bg-slate-100/80 p-1.5 rounded-3xl mb-12 w-fit mx-auto border border-slate-200/50 shadow-sm backdrop-blur-sm animate-in fade-in slide-in-from-top-4 duration-500">
+        <div className="flex bg-slate-200/50 p-1.5 rounded-full mb-12 w-fit mx-auto shadow-inner backdrop-blur-sm animate-in fade-in slide-in-from-top-4 duration-500 relative">
            <button 
             onClick={() => handleShareTypeChange('text')}
-            className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-3xl transition-all font-black uppercase tracking-widest text-xs ${
-              shareType === 'text' 
-                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' 
-                : 'bg-white/10 text-slate-400 hover:bg-white/20'
+            className={`relative flex items-center justify-center gap-2 py-3 px-8 rounded-full transition-colors font-black uppercase tracking-widest text-[11px] z-10 ${
+              shareType === 'text' ? 'text-white' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            <Zap size={18} />
-            Text Sync
+            {shareType === 'text' && (
+              <motion.div
+                layoutId="activeTabIndicator"
+                className="absolute inset-0 bg-blue-500 rounded-full shadow-md shadow-blue-500/20"
+                transition={{ type: "spring", stiffness: 450, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-2">
+              <Zap size={16} /> Text Sync
+            </span>
           </button>
+          
           <button 
             onClick={() => handleShareTypeChange('file')}
-            className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-3xl transition-all font-black uppercase tracking-widest text-xs ${
-              shareType === 'file' 
-                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' 
-                : 'bg-white/10 text-slate-400 hover:bg-white/20'
+            className={`relative flex items-center justify-center gap-2 py-3 px-8 rounded-full transition-colors font-black uppercase tracking-widest text-[11px] z-10 ${
+              shareType === 'file' ? 'text-white' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            <FilePlus size={18} />
-            File Sync
+            {shareType === 'file' && (
+              <motion.div
+                layoutId="activeTabIndicator"
+                className="absolute inset-0 bg-blue-500 rounded-full shadow-md shadow-blue-500/20"
+                transition={{ type: "spring", stiffness: 450, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center gap-2">
+              <FilePlus size={16} /> File Sync
+            </span>
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
-           <div className="md:col-span-5 bg-white p-8 rounded-[2.5rem] shadow-xl shadow-blue-500/5 border border-white space-y-8 flex flex-col items-center">
-              <div className="bg-blue-50 p-4 rounded-3xl w-full flex flex-col items-center">
-                 <QRCodeSVG value={shareUrl} size={200} level="H" includeMargin className="rounded-xl" />
-              </div>
-              <div className="w-full space-y-4">
-                 <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <Info size={16} className="text-blue-500 shrink-0" />
-                    <p className="text-xs font-bold text-slate-600">Scan this code with your phone camera.</p>
-                 </div>
-                 <div className="flex gap-3">
+        <div className={`grid grid-cols-1 ${isQRVisible ? 'md:grid-cols-12 gap-10' : 'md:grid-cols-1 w-full max-w-4xl mx-auto'} items-start relative transition-all duration-500`}>
+           <AnimatePresence mode="wait">
+             {isQRVisible && (
+               <motion.div 
+                 initial={{ opacity: 0, scale: 0.95, x: -20 }}
+                 animate={{ opacity: 1, scale: 1, x: 0 }}
+                 exit={{ opacity: 0, scale: 0.95, x: -20, transition: { duration: 0.2 } }}
+                 transition={{ duration: 0.4, type: 'spring', bounce: 0.2 }}
+                 className="md:col-span-5 bg-white p-6 pt-10 md:p-8 rounded-[2.5rem] shadow-xl shadow-blue-500/5 border border-white space-y-8 flex flex-col items-center relative"
+               >
+                  <span className="text-[10px] absolute top-6 left-1/2 -translate-x-1/2 uppercase font-black tracking-widest text-slate-400">Scan to Connect</span>
+                  {!showQR && (
                     <button 
-                     onClick={handleCopy}
-                     className="flex-1 py-4 bg-white border-2 border-slate-100 hover:border-blue-200 rounded-2xl font-bold text-slate-700 flex items-center justify-center gap-2 transition-all"
+                      onClick={() => setForceShowQR(false)}
+                      className="absolute top-4 right-4 p-2 bg-slate-100 hover:bg-slate-200 text-slate-400 hover:text-slate-700 rounded-full transition-colors z-10 shadow-sm"
                     >
-                       <Copy size={18} />
-                       Copy
+                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                     </button>
-                    <button 
-                     onClick={handleShare}
-                     className="flex-1 py-4 bg-blue-500 hover:bg-blue-600 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20"
-                    >
-                       <Share2 size={18} />
-                       Share
-                    </button>
-                 </div>
-              </div>
-           </div>
+                  )}
+                  <div className="bg-blue-50 p-4 rounded-3xl w-full flex flex-col items-center">
+                     <QRCodeSVG value={shareUrl} size={200} level="H" includeMargin className="rounded-xl" />
+                  </div>
+                  <div className="w-full space-y-4">
+                     <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                        <Info size={16} className="text-blue-500 shrink-0" />
+                        <p className="text-xs font-bold text-slate-600">Scan this code with your phone camera.</p>
+                     </div>
+                     <div className="flex gap-3">
+                        <button 
+                         onClick={handleCopy}
+                         className="flex-1 py-4 bg-white border-2 border-slate-100 hover:border-blue-200 rounded-2xl font-bold text-slate-700 flex items-center justify-center gap-2 transition-all"
+                        >
+                           <Copy size={18} />
+                           Copy
+                        </button>
+                        <button 
+                         onClick={handleShare}
+                         className="flex-1 py-4 bg-blue-500 hover:bg-blue-600 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20"
+                        >
+                           <Share2 size={18} />
+                           Share
+                        </button>
+                     </div>
+                  </div>
+               </motion.div>
+             )}
+           </AnimatePresence>
 
-           <div className="md:col-span-7 relative [perspective:2000px] min-h-[400px]">
+           <motion.div 
+             layout
+             transition={{ duration: 0.5, type: 'spring', bounce: 0.2 }}
+             className={`${isQRVisible ? 'md:col-span-7' : 'w-full'} relative [perspective:2000px] min-h-[400px]`}
+           >
+              {!isQRVisible && (
+                 <motion.button
+                   initial={{ opacity: 0, y: -10 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   onClick={() => setForceShowQR(true)}
+                   className="absolute -top-14 right-0 flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-slate-500 hover:text-blue-500 hover:border-blue-200 transition-all font-bold text-xs uppercase tracking-widest z-20"
+                 >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="5" height="5" x="3" y="3" rx="1"/><rect width="5" height="5" x="16" y="3" rx="1"/><rect width="5" height="5" x="3" y="16" rx="1"/><path d="M21 16h-3a2 2 0 0 0-2 2v3"/><path d="M21 21v.01"/><path d="M12 7v3a2 2 0 0 1-2 2H7"/><path d="M3 12h.01"/><path d="M12 3h.01"/><path d="M12 16v.01"/><path d="M16 12h1"/><path d="M21 12v.01"/><path d="M12 21v-1"/></svg>
+                    Show QR
+                 </motion.button>
+              )}
               <motion.div
                 animate={{ rotateY: shareType === 'file' ? 180 : 0 }}
                 transition={{ duration: 0.8, type: 'spring', stiffness: 260, damping: 20 }}
@@ -333,13 +395,15 @@ function ShareContent() {
                                        </div>
                                     )}
                                  </div>
-                                 <button 
-                                   onClick={switchRole}
-                                   className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 rounded-2xl transition-all border border-slate-200 shadow-sm active:scale-95 group"
-                                 >
-                                    <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
-                                    <span className="text-[10px] font-black uppercase tracking-wider">Switch Role</span>
-                                 </button>
+                                 {role === 'receiver' && (
+                                   <button 
+                                     onClick={switchRole}
+                                     className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 rounded-2xl transition-all border border-slate-200 shadow-sm active:scale-95 group"
+                                   >
+                                      <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
+                                      <span className="text-[10px] font-black uppercase tracking-wider">Send from here</span>
+                                   </button>
+                                 )}
                           </div>
 
                           <div className="flex-1 flex flex-col gap-6">
@@ -427,7 +491,7 @@ function ShareContent() {
                      </div>
                   </div>
               </motion.div>
-           </div>
+           </motion.div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">

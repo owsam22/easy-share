@@ -384,7 +384,7 @@ export default function FileShare({ socket, role, isConnected, userCount }: File
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-6 space-y-6 relative overflow-hidden">
+    <div className="w-full h-full flex flex-col p-8 md:p-10 space-y-6 relative overflow-hidden">
       {error && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 w-[90%] flex flex-col items-center gap-2">
           <div className="bg-red-50 border border-red-100 px-4 py-2.5 rounded-2xl flex items-center gap-3 shadow-sm animate-in slide-in-from-top-4 duration-300">
@@ -395,7 +395,27 @@ export default function FileShare({ socket, role, isConnected, userCount }: File
         </div>
       )}
 
-      {role === 'sender' ? (
+      {/* Role Header for File Sync */}
+      <div className="flex items-center justify-between w-full mb-2">
+         <div className="flex items-center gap-3">
+            <div className={`px-4 py-2 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm ${role === 'sender' ? 'bg-blue-500 text-white' : 'bg-purple-500 text-white'}`}>
+               <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+               You are {role}
+            </div>
+         </div>
+         {role === 'receiver' && (
+           <button 
+             onClick={() => isConnected && socket.emit('switch-role')}
+             className="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-2xl transition-all border border-slate-200 shadow-sm active:scale-95 group"
+           >
+              <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
+              <span className="text-[10px] font-black uppercase tracking-wider">Send from here</span>
+           </button>
+         )}
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center w-full relative">
+        {role === 'sender' ? (
         <div className="w-full space-y-6 animate-in fade-in zoom-in duration-500">
           <div 
             onClick={() => !transferring && fileInputRef.current?.click()}
@@ -471,8 +491,9 @@ export default function FileShare({ socket, role, isConnected, userCount }: File
           )}
         </div>
       )}
+      </div>
 
-      <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mt-2">
+      <div className="flex items-center justify-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 pt-2 pb-2">
          <div className={`w-2 h-2 rounded-full ${connectionState === 'connected' ? 'bg-green-500' : isFallback ? 'bg-amber-500' : 'bg-slate-300 animate-pulse'}`} />
          {connectionState === 'connected' ? 'Secured P2P Active' : isFallback ? 'Cloud Fallback Ready' : `WebRTC: ${connectionState}`}
          {connectionState !== 'connected' && !isFallback && <RefreshCw size={10} className="animate-spin" />}

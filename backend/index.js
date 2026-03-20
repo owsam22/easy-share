@@ -84,8 +84,11 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Role assignment: first user is Receiver, second is Sender
-    const role = room.users.length === 0 ? 'receiver' : 'sender';
+    // Role assignment: first user defaults to receiver, second gets opposite of first
+    let role = 'receiver';
+    if (room.users.length === 1) {
+      role = room.users[0].role === 'sender' ? 'receiver' : 'sender';
+    }
     const user = { id: socket.id, role };
     room.users.push(user);
     
@@ -149,7 +152,7 @@ io.on('connection', (socket) => {
   socket.on('switch-role', () => {
     const roomId = socket.roomId;
     const room = rooms.get(roomId);
-    if (!room || room.users.length < 2) return;
+    if (!room || room.users.length === 0) return;
 
     // Swap roles
     room.users.forEach(user => {
