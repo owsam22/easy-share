@@ -20,7 +20,7 @@ export default function SharePage() {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'error' | 'role' } | null>(null);
   const [copied, setCopied] = useState(false);
-  const [isTabInactive, setIsTabInactive] = useState(false);
+
 
   const socketRef = useRef(socket);
 
@@ -28,17 +28,7 @@ export default function SharePage() {
     return `${window.location.origin}/?room=${roomId}`;
   }, [roomId]);
 
-  useEffect(() => {
-    const handleVisibilityChange = () => setIsTabInactive(document.hidden);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
 
-  const sendBrowserNotification = (title: string, body: string) => {
-    if (isTabInactive && 'Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, { body });
-    }
-  };
 
   useEffect(() => {
     if (!roomId) return;
@@ -65,7 +55,6 @@ export default function SharePage() {
       if (data.text && role === 'receiver') {
         const msg = 'New message received!';
         setNotification({ message: msg, type: 'info' });
-        sendBrowserNotification('Easy Share', msg);
       }
     });
 
@@ -82,7 +71,6 @@ export default function SharePage() {
 
     socketRef.current.on('notification', (msg) => {
       setNotification({ message: msg, type: 'info' });
-      sendBrowserNotification('Easy Share', msg);
     });
 
     socketRef.current.on('error', (msg) => {
@@ -99,7 +87,7 @@ export default function SharePage() {
       socketRef.current.off('error');
       socketRef.current.disconnect();
     };
-  }, [roomId, role, isTabInactive]);
+  }, [roomId, role]);
 
   useEffect(() => {
     if (!expiresAt) {
