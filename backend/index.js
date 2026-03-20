@@ -3,28 +3,56 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
+const os = require('os');
+require('dotenv').config();
 
 const app = express();
-const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+const PORT = process.env.PORT || 5000;
+const FRONTEND_URLS = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  process.env.FRONTEND_URL, 
+].filter(Boolean);
 
-console.log('CORS Allowed Origin:', FRONTEND_URL);
+console.log('Backend starting... CORS configured for universal access.');
 
-app.use(cors({
-  origin: FRONTEND_URL,
+const corsOptions = {
+  origin: true, // Reflect request origin, allowing any origin to connect
   methods: ['GET', 'POST'],
-}));
+  credentials: true
+};
+
+app.use(cors(corsOptions));
 
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: FRONTEND_URL,
-    methods: ['GET', 'POST'],
-  },
+  cors: corsOptions,
 });
 
 // In-memory room storage
 // Rooms structure: { roomId: { users: [ { id, role } ], text: "", expiresAt: null, timer: null } }
 const rooms = new Map();
+
+// Generate ICE servers configuration
+const getIceServers = () => {
+  const iceServers = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' },
+    { urls: 'stun:stun2.l.google.com:19302' },
+    { urls: 'stun:stun3.l.google.com:19302' },
+    { urls: 'stun:stun4.l.google.com:19302' },
+  ];
+
+  if (process.env.TURN_SERVER_URL) {
+    iceServers.push({
+      urls: process.env.TURN_SERVER_URL,
+      username: process.env.TURN_SERVER_USERNAME,
+      credential: process.env.TURN_SERVER_PASSWORD,
+    });
+  }
+
+  return iceServers;
+};
 
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -69,6 +97,9 @@ io.on('connection', (socket) => {
     if (room.users.length === 2) {
       io.to(roomId).emit('notification', 'Device connected');
     }
+
+    // Send ICE servers to the newly joined client
+    socket.emit('ice-servers', getIceServers());
   });
 
   socket.on('send-text', (text) => {
@@ -128,6 +159,34 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('offer', (offer) => {
+    const roomId = socket.roomId;
+    if (roomId) {
+      socket.to(roomId).emit('offer', offer);
+    }
+  });
+
+  socket.on('answer', (answer) => {
+    const roomId = socket.roomId;
+    if (roomId) {
+      socket.to(roomId).emit('answer', answer);
+    }
+  });
+
+  socket.on('ice-candidate', (candidate) => {
+    const roomId = socket.roomId;
+    if (roomId) {
+      socket.to(roomId).emit('ice-candidate', candidate);
+    }
+  });
+
+  socket.on('file-chunk', (data) => {
+    const roomId = socket.roomId;
+    if (roomId) {
+      socket.to(roomId).emit('file-chunk', data);
+    }
+  });
+
   socket.on('switch-share-type', (shareType) => {
     const roomId = socket.roomId;
     if (roomId) {
@@ -145,7 +204,7 @@ io.on('connection', (socket) => {
       if (room.users.length === 0) {
         if (room.timer) clearTimeout(room.timer);
         rooms.delete(roomId);
-        console.log(`Room ${roomId} deleted (empty)`);
+        console.log(`[CLEANUP] Room ${roomId} has been permanently deleted.`);
       } else {
         // Only one user left, make them sender if they were receiver or just maintain?
         // User flow says: "Delete room if empty". 
@@ -163,7 +222,21 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  const networkInterfaces = os.networkInterfaces();
+  let localIp = 'localhost';
+  
+  for (const interfaceName in networkInterfaces) {
+    for (const iface of networkInterfaces[interfaceName]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        localIp = iface.address;
+        break;
+      }
+    }
+  }
+
+  console.log(`\n🚀 Easy Share Backend is LIVE`);
+  console.log(`📡 Local:   http://localhost:${PORT}`);
+  console.log(`🌐 Network: http://${localIp}:${PORT}`);
+  console.log(`\nTo connect from another device, use: http://${localIp}:5173\n`);
 });
