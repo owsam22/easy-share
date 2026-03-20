@@ -145,6 +145,25 @@ export default function SharePage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleShareRoom = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Easy Share',
+          text: 'Join my Easy Share room to exchange text instantly!',
+          url: shareUrl,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+    } else {
+      navigator.clipboard.writeText(shareUrl);
+      setNotification({ message: 'Link copied!', type: 'success' });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#0f172a] text-white flex flex-col font-sans selection:bg-blue-500/30">
       <Header connected={isConnected} />
@@ -170,16 +189,26 @@ export default function SharePage() {
                           Share this room URL with someone to start instant text sharing.
                        </p>
                     </div>
-                    <div className="bg-slate-800/50 p-2 rounded-2xl border border-slate-700 flex items-center gap-4 max-w-sm mx-auto">
-                       <code className="flex-1 text-xs text-blue-400 px-4 font-mono truncate">{shareUrl}</code>
+                    <div className="flex gap-2 max-w-sm mx-auto w-full">
+                       <div className="flex-1 bg-slate-800/50 p-2 rounded-2xl border border-slate-700 flex items-center gap-4 min-w-0">
+                          <code className="flex-1 text-[10px] text-blue-400 px-2 font-mono truncate">{shareUrl}</code>
+                          <button 
+                           onClick={() => {
+                             navigator.clipboard.writeText(shareUrl);
+                             setNotification({ message: 'Link copied!', type: 'success' });
+                           }}
+                           className="p-2.5 bg-slate-700 hover:bg-slate-600 rounded-xl transition-all active:scale-95 shrink-0"
+                           title="Copy Link"
+                          >
+                             <Copy size={14} />
+                          </button>
+                       </div>
                        <button 
-                        onClick={() => {
-                          navigator.clipboard.writeText(shareUrl);
-                          setNotification({ message: 'Link copied!', type: 'success' });
-                        }}
-                        className="p-3 bg-blue-500 hover:bg-blue-600 rounded-xl transition-all active:scale-95"
+                        onClick={handleShareRoom}
+                        className="p-4 bg-blue-500 hover:bg-blue-600 rounded-2xl transition-all active:scale-95 shadow-lg shadow-blue-500/20 shrink-0"
+                        title="Share Room"
                        >
-                          <Copy size={16} />
+                          <Share2 size={20} />
                        </button>
                     </div>
                 </div>

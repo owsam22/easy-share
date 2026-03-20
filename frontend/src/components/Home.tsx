@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   ArrowRight, Bell, Check, Clipboard, Clock, Copy, Info, 
-  Monitor, RefreshCw, Smartphone 
+  Monitor, RefreshCw, Smartphone, Share2 
 } from 'lucide-react';
 import { socket } from '../lib/socket';
 import Header from './Header';
@@ -161,6 +161,24 @@ function ShareContent() {
     setNotification({ message: 'Link copied to clipboard!', type: 'success' });
   };
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Easy Share',
+          text: 'Connect and share text instantly with Easy Share!',
+          url: shareUrl,
+        });
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
+      }
+    } else {
+      handleCopy();
+    }
+  };
+
   const handleCopyReceived = () => {
     navigator.clipboard.writeText(receivedText);
     setCopied(true);
@@ -206,13 +224,22 @@ function ShareContent() {
                     <Info size={16} className="text-blue-500 shrink-0" />
                     <p className="text-xs font-bold text-slate-600">Scan this code with your phone camera.</p>
                  </div>
-                 <button 
-                  onClick={handleCopy}
-                  className="w-full py-4 bg-white border-2 border-slate-100 hover:border-blue-200 rounded-2xl font-bold text-slate-700 flex items-center justify-center gap-2 transition-all"
-                 >
-                    <Copy size={18} />
-                    Copy Link
-                 </button>
+                 <div className="flex gap-3">
+                    <button 
+                     onClick={handleCopy}
+                     className="flex-1 py-4 bg-white border-2 border-slate-100 hover:border-blue-200 rounded-2xl font-bold text-slate-700 flex items-center justify-center gap-2 transition-all"
+                    >
+                       <Copy size={18} />
+                       Copy
+                    </button>
+                    <button 
+                     onClick={handleShare}
+                     className="flex-1 py-4 bg-blue-500 hover:bg-blue-600 rounded-2xl font-bold text-white flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-500/20"
+                    >
+                       <Share2 size={18} />
+                       Share
+                    </button>
+                 </div>
               </div>
            </div>
 
