@@ -7,7 +7,7 @@ export default function Footer() {
       <div className="flex flex-col md:flex-row items-center justify-between gap-8">
         <div className="text-center md:text-left space-y-2">
           <h4 className="text-lg font-black text-slate-800">Easy Share</h4>
-          <p className="text-slate-500 text-sm font-medium">Fast & temporary text sharing between devices.</p>
+          <p className="text-slate-500 text-sm font-medium">Fast, temporary text & file sharing between devices.</p>
         </div>
 
         <div className="flex flex-col items-center md:items-end gap-3">
