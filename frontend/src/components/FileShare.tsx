@@ -72,7 +72,8 @@ export default function FileShare({ socket, role, isConnected, userCount }: File
       iceServers: iceServers.length > 0 ? iceServers : [
         { urls: 'stun:stun.l.google.com:19302' }
       ],
-      iceTransportPolicy: 'all'
+      iceTransportPolicy: 'all',
+      iceCandidatePoolSize: 10
     };
 
     console.log('Initializing PeerConnection with config:', configuration);
@@ -179,6 +180,7 @@ export default function FileShare({ socket, role, isConnected, userCount }: File
 
     const handleFileChunk = (data: any) => {
       if (isFallback) {
+         console.log('Received file chunk via Socket fallback');
          handleIncomingData(data);
       }
     };

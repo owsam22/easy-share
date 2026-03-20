@@ -27,6 +27,7 @@ app.use(cors(corsOptions));
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: corsOptions,
+  maxHttpBufferSize: 1e8, // 100MB buffer for large file chunks in fallback mode
 });
 
 // In-memory room storage
@@ -43,11 +44,25 @@ const getIceServers = () => {
     { urls: 'stun:stun4.l.google.com:19302' },
   ];
 
+  // If the user has provided their own TURN server, use it
   if (process.env.TURN_SERVER_URL) {
     iceServers.push({
       urls: process.env.TURN_SERVER_URL,
       username: process.env.TURN_SERVER_USERNAME,
       credential: process.env.TURN_SERVER_PASSWORD,
+    });
+  } else {
+    // Add a public TURN server (OpenRelay) if none is provided via environment
+    // Note: These credentials are part of the OpenRelay public project
+    iceServers.push({
+      urls: 'turn:global.relay.metered.ca:80',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
+    });
+    iceServers.push({
+      urls: 'turn:global.relay.metered.ca:443',
+      username: 'openrelayproject',
+      credential: 'openrelayproject'
     });
   }
 
@@ -183,6 +198,12 @@ io.on('connection', (socket) => {
   socket.on('file-chunk', (data) => {
     const roomId = socket.roomId;
     if (roomId) {
+      if (typeof data !== 'string') {
+        // Only log sparingly for binary data to avoid console spam
+        if (Math.random() < 0.05) console.log(`Relaying binary chunk in room ${roomId} from ${socket.id}`);
+      } else {
+        console.log(`Relaying metadata chunk in room ${roomId} from ${socket.id}`);
+      }
       socket.to(roomId).emit('file-chunk', data);
     }
   });
