@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QRCodeSVG } from 'qrcode.react';
 import { 
   ArrowRight, Bell, Check, Clipboard, Clock, Copy, Info, 
-  Monitor, RefreshCw, Smartphone, Share2 
+  RefreshCw, Smartphone, Share2, FilePlus, Zap, ShieldCheck 
 } from 'lucide-react';
 import { socket } from '../lib/socket';
 import Header from './Header';
@@ -25,6 +25,7 @@ function ShareContent() {
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'info' | 'error' | 'role' } | null>(null);
   const [copied, setCopied] = useState(false);
+  const [shareType, setShareType] = useState<'text' | 'file'>('text');
 
 
   const socketRef = useRef(socket);
@@ -185,18 +186,38 @@ function ShareContent() {
     }
   };
 
+
   return (
     <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans">
       <Header connected={isConnected} />
 
       <main className="flex-1 w-full max-w-4xl mx-auto px-6 py-10 flex flex-col">
-        <div className="text-center space-y-4 mb-12">
-           <h2 className="text-4xl md:text-5xl font-black text-slate-800 tracking-tight">
-             Share Text Instantly.
-           </h2>
-           <p className="text-slate-500 font-medium text-lg max-w-xl mx-auto">
-             No accounts. No wait. Scan the code to connect two devices and start sharing.
+        <div className="text-center space-y-4 mb-20">
+           <h1 className="text-6xl md:text-8xl font-black text-slate-900 tracking-tighter leading-none uppercase italic">
+              Instant <span className="text-blue-500">{shareType === 'text' ? 'Sync' : 'Cloud'}</span>
+           </h1>
+           <p className="text-slate-400 font-bold max-w-lg mx-auto uppercase tracking-[0.2em] text-[10px] md:text-xs">
+              Universal bridge for your text & files. No apps. No accounts. 
+              <br className="hidden md:block" />
+              Just scan and start sharing instantly.
            </p>
+        </div>
+
+        <div className="flex bg-slate-100/80 p-1.5 rounded-3xl mb-12 w-fit mx-auto border border-slate-200/50 shadow-sm backdrop-blur-sm animate-in fade-in slide-in-from-top-4 duration-500">
+           <button 
+            onClick={() => setShareType('text')}
+            className={`px-10 py-3 rounded-2xl font-bold text-sm transition-all duration-500 flex items-center gap-2 ${shareType === 'text' ? 'bg-white text-blue-600 shadow-xl shadow-blue-500/10' : 'text-slate-400 hover:text-slate-600'}`}
+           >
+              <ArrowRight size={16} className={shareType === 'text' ? 'opacity-100' : 'opacity-0 transition-opacity'} />
+              Text Sync
+           </button>
+           <button 
+            onClick={() => setShareType('file')}
+            className={`px-10 py-3 rounded-2xl font-bold text-sm transition-all duration-500 flex items-center gap-2 ${shareType === 'file' ? 'bg-white text-blue-600 shadow-xl shadow-blue-500/10' : 'text-slate-400 hover:text-slate-600'}`}
+           >
+              <FilePlus size={16} className={shareType === 'file' ? 'opacity-100' : 'opacity-0 transition-opacity'} />
+              File Sync
+           </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
@@ -228,159 +249,190 @@ function ShareContent() {
               </div>
            </div>
 
-           <div className="md:col-span-7 space-y-6">
-              {!isConnected && (
-                 <div className="bg-white p-10 rounded-[2.5rem] border-2 border-dashed border-blue-100 flex flex-col items-center justify-center min-h-[400px] text-center space-y-6">
-                    <img 
-                      src="https://media1.tenor.com/m/0chWb5VggvAAAAAd/pizzaninjas-pizza-ninjas.gif" 
-                      alt="Ninja" 
-                      className="w-40 h-40 animate-bounce"
-                    />
-                    <div className="space-y-2">
-                       <h3 className="text-xl font-bold text-slate-800">Waiting for Device...</h3>
-                       <p className="text-sm text-slate-400 font-medium">Once a device scans the code, sharing will begin.</p>
-                    </div>
-                 </div>
-              )}
-
-              {isConnected && userCount < 2 && (
-                 <div className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-blue-500/5 border border-white flex flex-col items-center justify-center min-h-[400px] text-center space-y-8">
-                    <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                       <Smartphone size={32} strokeWidth={2.5} />
-                    </div>
-                    <div className="space-y-4">
-                       <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Connected!</h3>
-                       <p className="text-slate-500 font-medium max-w-xs">
-                          Waiting for your other device to join the room. Keep this page open!
-                       </p>
-                    </div>
-                    <div className="flex gap-2">
-                       <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" />
-                       <div className="w-3 h-3 bg-blue-300 rounded-full animate-bounce [animation-delay:0.2s]" />
-                       <div className="w-3 h-3 bg-blue-100 rounded-full animate-bounce [animation-delay:0.4s]" />
-                    </div>
-                 </div>
-              )}
-
-              {isConnected && userCount >= 2 && (
-                 <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-blue-600/10 border border-white min-h-[400px] flex flex-col">
-                    <div className="flex items-center justify-between mb-8">
-                       <div className="flex items-center gap-3">
-                          <div className={`px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest ${role === 'sender' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                             You are: {role}
+           <div className="md:col-span-7 relative [perspective:2000px] min-h-[400px]">
+              <motion.div
+                animate={{ rotateY: shareType === 'file' ? 180 : 0 }}
+                transition={{ duration: 0.8, type: 'spring', stiffness: 260, damping: 20 }}
+                style={{ transformStyle: 'preserve-3d' }}
+                className="w-full h-full"
+              >
+                 {/* FRONT: Text Sync Stages */}
+                 <div className="w-full h-full [backface-visibility:hidden] space-y-6">
+                    {!isConnected && (
+                       <div className="bg-white p-10 rounded-[2.5rem] border-2 border-dashed border-blue-100 flex flex-col items-center justify-center min-h-[400px] text-center space-y-6">
+                          <img 
+                            src="https://media1.tenor.com/m/0chWb5VggvAAAAAd/pizzaninjas-pizza-ninjas.gif" 
+                            alt="Ninja" 
+                            className="w-40 h-40 animate-bounce"
+                          />
+                          <div className="space-y-2">
+                             <h3 className="text-xl font-bold text-slate-800">Waiting for Device...</h3>
+                             <p className="text-sm text-slate-400 font-medium">Once a device scans the code, sharing will begin.</p>
                           </div>
-                          {expiresAt && (
-                             <div className="flex items-center gap-1 text-slate-400 font-bold text-[10px]">
-                                <Clock size={12} />
-                                {timeLeft}s
-                             </div>
-                          )}
                        </div>
-                       <button 
-                        onClick={switchRole}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-800 rounded-xl transition-all border border-slate-100 shadow-sm"
-                        title="Switch Role"
-                       >
-                          <RefreshCw size={14} />
-                          <span className="text-[10px] font-extrabold uppercase tracking-widest">Switch Role</span>
-                       </button>
-                    </div>
+                    )}
 
-                    <div className="flex-1 flex flex-col gap-6">
-                      <AnimatePresence mode="wait">
-                        {role === 'sender' ? (
-                          <motion.div
-                            key="sender"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
-                            className="flex-1 flex flex-col gap-6"
-                          >
-                            <div className="relative group flex-1 flex flex-col">
-                               <textarea
-                                 value={text}
-                                 onChange={(e) => setText(e.target.value)}
-                                 placeholder="Type or paste something here..."
-                                 className="w-full flex-1 p-6 bg-slate-50 rounded-3xl border-2 border-transparent focus:border-blue-100 focus:bg-white transition-all text-xl font-medium outline-none resize-none placeholder:text-slate-300 min-h-[250px]"
-                               />
-                               <button
-                                 onClick={handlePaste}
-                                 className="absolute right-4 bottom-4 p-3 bg-white border border-slate-100 rounded-2xl shadow-sm text-slate-400 hover:text-blue-500 hover:border-blue-100 transition-all flex items-center gap-2 text-xs font-bold"
-                                 title="Paste from clipboard"
-                               >
-                                  <Clipboard size={16} />
-                                  Paste
-                               </button>
-                            </div>
-                            <button
-                               onClick={handleSend}
-                               disabled={!text.trim()}
-                               className="w-full py-5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-3xl font-black text-xl shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
-                            >
-                               Send Text
-                               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                            </button>
-                          </motion.div>
-                        ) : (
-                          <motion.div
-                            key="receiver"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -10 }}
-                            transition={{ duration: 0.3 }}
-                            className="flex-1 flex flex-col gap-6"
-                          >
-                            <div className={`w-full flex-1 p-8 rounded-3xl flex items-center justify-center text-center transition-all ${receivedText ? 'bg-green-50/50' : 'bg-slate-50 border-2 border-dashed border-slate-200'}`}>
-                               {receivedText ? (
-                                 <p className="text-2xl font-bold text-slate-800 break-words leading-relaxed">
-                                    {receivedText}
-                                 </p>
-                               ) : (
-                                 <div className="space-y-4 opacity-40">
-                                    <Bell size={40} className="mx-auto text-slate-400" />
-                                    <p className="font-bold text-sm tracking-widest uppercase">Watching for incoming text...</p>
-                                 </div>
-                               )}
-                            </div>
-                            <button
-                              onClick={handleCopyReceived}
-                              disabled={!receivedText}
-                              className={`w-full py-5 rounded-3xl font-black text-xl shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3 ${copied ? 'bg-green-500 text-white' : 'bg-slate-800 hover:bg-black text-white disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none'}`}
-                            >
-                               {copied ? <Check size={20} /> : <Copy size={20} />}
-                               {copied ? 'Copied!' : 'Copy Received Text'}
-                            </button>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                    {isConnected && userCount < 2 && (
+                       <div className="bg-white p-10 rounded-[2.5rem] shadow-xl shadow-blue-500/5 border border-white flex flex-col items-center justify-center min-h-[400px] text-center space-y-8">
+                          <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                             <Smartphone size={32} strokeWidth={2.5} />
+                          </div>
+                          <div className="space-y-4">
+                             <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Connected!</h3>
+                             <p className="text-slate-500 font-medium max-w-xs">
+                                Waiting for your other device to join the room. Keep this page open!
+                             </p>
+                          </div>
+                          <div className="flex gap-2">
+                             <div className="w-3 h-3 bg-blue-500 rounded-full animate-bounce" />
+                             <div className="w-3 h-3 bg-blue-300 rounded-full animate-bounce [animation-delay:0.2s]" />
+                             <div className="w-3 h-3 bg-blue-100 rounded-full animate-bounce [animation-delay:0.4s]" />
+                          </div>
+                       </div>
+                    )}
+
+                    {isConnected && userCount >= 2 && (
+                       <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-blue-600/10 border border-white min-h-[400px] flex flex-col">
+                          <div className="flex items-center justify-between mb-8">
+                             <div className="flex items-center gap-3">
+                                <div className={`px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest ${role === 'sender' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                                   You are: {role}
+                                </div>
+                                {expiresAt && (
+                                   <div className="flex items-center gap-1 text-slate-400 font-bold text-[10px]">
+                                      <Clock size={12} />
+                                      {timeLeft}s
+                                   </div>
+                                )}
+                             </div>
+                             <button 
+                              onClick={switchRole}
+                              className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-800 rounded-xl transition-all border border-slate-100 shadow-sm"
+                              title="Switch Role"
+                             >
+                                <RefreshCw size={14} />
+                                <span className="text-[10px] font-extrabold uppercase tracking-widest">Switch Role</span>
+                             </button>
+                          </div>
+
+                          <div className="flex-1 flex flex-col gap-6">
+                            <AnimatePresence mode="wait">
+                              {role === 'sender' ? (
+                                <motion.div
+                                  key="sender"
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -10 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="flex-1 flex flex-col gap-6"
+                                >
+                                  <div className="relative group flex-1 flex flex-col">
+                                     <textarea
+                                       value={text}
+                                       onChange={(e) => setText(e.target.value)}
+                                       placeholder="Type or paste something here..."
+                                       className="w-full flex-1 p-6 bg-slate-50 rounded-3xl border-2 border-transparent focus:border-blue-100 focus:bg-white transition-all text-xl font-medium outline-none resize-none placeholder:text-slate-300 min-h-[250px]"
+                                     />
+                                     <button
+                                       onClick={handlePaste}
+                                       className="absolute right-4 bottom-4 p-3 bg-white border border-slate-100 rounded-2xl shadow-sm text-slate-400 hover:text-blue-500 hover:border-blue-100 transition-all flex items-center gap-2 text-xs font-bold"
+                                       title="Paste from clipboard"
+                                     >
+                                        <Clipboard size={16} />
+                                        Paste
+                                     </button>
+                                  </div>
+                                  <button
+                                     onClick={handleSend}
+                                     disabled={!text.trim()}
+                                     className="w-full py-5 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-100 disabled:text-slate-400 text-white rounded-3xl font-black text-xl shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
+                                  >
+                                     Send Text
+                                     <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
+                                  </button>
+                                </motion.div>
+                              ) : (
+                                <motion.div
+                                  key="receiver"
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: -10 }}
+                                  transition={{ duration: 0.3 }}
+                                  className="flex-1 flex flex-col gap-6"
+                                >
+                                  <div className={`w-full flex-1 p-8 rounded-3xl flex items-center justify-center text-center transition-all ${receivedText ? 'bg-green-50/50' : 'bg-slate-50 border-2 border-dashed border-slate-200'}`}>
+                                     {receivedText ? (
+                                       <p className="text-2xl font-bold text-slate-800 break-words leading-relaxed">
+                                          {receivedText}
+                                       </p>
+                                     ) : (
+                                       <div className="space-y-4 opacity-40">
+                                          <Bell size={40} className="mx-auto text-slate-400" />
+                                          <p className="font-bold text-sm tracking-widest uppercase">Watching for incoming text...</p>
+                                       </div>
+                                     )}
+                                  </div>
+                                  <button
+                                    onClick={handleCopyReceived}
+                                    disabled={!receivedText}
+                                    className={`w-full py-5 rounded-3xl font-black text-xl shadow-xl active:scale-[0.98] transition-all flex items-center justify-center gap-3 ${copied ? 'bg-green-500 text-white' : 'bg-slate-800 hover:bg-black text-white disabled:bg-slate-100 disabled:text-slate-400 disabled:shadow-none'}`}
+                                  >
+                                     {copied ? <Check size={20} /> : <Copy size={20} />}
+                                     {copied ? 'Copied!' : 'Copy Received Text'}
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                       </div>
+                    )}
+                 </div>
+
+                 {/* BACK: File Sync Placeholder */}
+                 <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                    <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-blue-600/10 border border-white min-h-[400px] flex flex-col items-center justify-center text-center space-y-8">
+                       <div className="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center text-blue-500 relative">
+                          <FilePlus size={48} strokeWidth={2.5} />
+                          <div className="absolute -top-2 -right-2 px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-widest rounded-full border-2 border-white shadow-sm">Soon</div>
+                       </div>
+                       <div className="space-y-4 max-w-xs">
+                          <h3 className="text-3xl font-black text-slate-800 uppercase tracking-tight">File Sync</h3>
+                          <p className="text-slate-500 font-medium">
+                             Drag and drop files to sync them across your devices. This feature will be available very soon!
+                          </p>
+                       </div>
+                       <div className="flex gap-2">
+                          <div className="w-2 h-2 bg-blue-200 rounded-full animate-pulse" />
+                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse [animation-delay:0.2s]" />
+                          <div className="w-2 h-2 bg-blue-200 rounded-full animate-pulse [animation-delay:0.4s]" />
+                       </div>
                     </div>
                  </div>
-              )}
+              </motion.div>
            </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16">
-           <div className="bg-white p-6 rounded-3xl border border-slate-100 hover:shadow-lg transition-shadow">
-              <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 mb-4">
-                 <Monitor size={20} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
+           <div className="bg-white/50 backdrop-blur-sm p-8 rounded-[2rem] border border-white hover:border-blue-200 hover:shadow-xl hover:shadow-blue-500/5 transition-all group">
+              <div className="w-12 h-12 bg-blue-500 text-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/20">
+                 <Zap size={24} />
               </div>
-              <h4 className="font-bold text-slate-800 mb-1">Device Sync</h4>
-              <p className="text-sm text-slate-500">Connect PC to Phone, or any two devices instantly.</p>
+              <h4 className="font-black text-slate-900 mb-2 uppercase tracking-tight">Rapid Sync</h4>
+              <p className="text-sm text-slate-500 font-medium leading-relaxed">Share text and files instantly across any two devices connected via QR code.</p>
            </div>
-           <div className="bg-white p-6 rounded-3xl border border-slate-100 hover:shadow-lg transition-shadow">
-              <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center text-green-500 mb-4">
-                 <Bell size={20} />
+           <div className="bg-white/50 backdrop-blur-sm p-8 rounded-[2rem] border border-white hover:border-purple-200 hover:shadow-xl hover:shadow-purple-500/5 transition-all group">
+              <div className="w-12 h-12 bg-purple-500 text-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-purple-500/20">
+                 <ShieldCheck size={24} />
               </div>
-              <h4 className="font-bold text-slate-800 mb-1">Instant Share</h4>
-              <p className="text-sm text-slate-500">Get notified correctly when new text is received.</p>
+              <h4 className="font-black text-slate-900 mb-2 uppercase tracking-tight">Private Link</h4>
+              <p className="text-sm text-slate-500 font-medium leading-relaxed">End-to-end temporary tunnel ensures your data never touches permanent storage.</p>
            </div>
-           <div className="bg-white p-6 rounded-3xl border border-slate-100 hover:shadow-lg transition-shadow">
-              <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-500 mb-4">
-                 <Clock size={20} />
+           <div className="bg-white/50 backdrop-blur-sm p-8 rounded-[2rem] border border-white hover:border-amber-200 hover:shadow-xl hover:shadow-amber-500/5 transition-all group">
+              <div className="w-12 h-12 bg-amber-500 text-white rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-amber-500/20">
+                 <Clock size={24} />
               </div>
-              <h4 className="font-bold text-slate-800 mb-1">Auto-Wipe</h4>
-              <p className="text-sm text-slate-500">Messages expire after 60s for your privacy.</p>
+              <h4 className="font-black text-slate-900 mb-2 uppercase tracking-tight">Auto-Purge</h4>
+              <p className="text-sm text-slate-500 font-medium leading-relaxed">All shared data is automatically wiped after 60 seconds or upon disconnection.</p>
            </div>
         </div>
       </main>
