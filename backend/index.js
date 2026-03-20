@@ -36,37 +36,30 @@ const rooms = new Map();
 
 // Generate ICE servers configuration
 const getIceServers = () => {
-  const iceServers = [
+  return [
     { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-    { urls: 'stun:stun2.l.google.com:19302' },
-    { urls: 'stun:stun3.l.google.com:19302' },
-    { urls: 'stun:stun4.l.google.com:19302' },
-  ];
-
-  // If the user has provided their own TURN server, use it
-  if (process.env.TURN_SERVER_URL) {
-    iceServers.push({
-      urls: process.env.TURN_SERVER_URL,
-      username: process.env.TURN_SERVER_USERNAME,
-      credential: process.env.TURN_SERVER_PASSWORD,
-    });
-  } else {
-    // Add a public TURN server (OpenRelay) if none is provided via environment
-    // Note: These credentials are part of the OpenRelay public project
-    iceServers.push({
+    { urls: 'stun:stun.relay.metered.ca:80' },
+    {
       urls: 'turn:global.relay.metered.ca:80',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    });
-    iceServers.push({
+      username: '6dc6a1b1c0e3fecb51bcddc1',
+      credential: '2GifNHXTo6dInckE',
+    },
+    {
+      urls: 'turn:global.relay.metered.ca:80?transport=tcp',
+      username: '6dc6a1b1c0e3fecb51bcddc1',
+      credential: '2GifNHXTo6dInckE',
+    },
+    {
       urls: 'turn:global.relay.metered.ca:443',
-      username: 'openrelayproject',
-      credential: 'openrelayproject'
-    });
-  }
-
-  return iceServers;
+      username: '6dc6a1b1c0e3fecb51bcddc1',
+      credential: '2GifNHXTo6dInckE',
+    },
+    {
+      urls: 'turns:global.relay.metered.ca:443?transport=tcp',
+      username: '6dc6a1b1c0e3fecb51bcddc1',
+      credential: '2GifNHXTo6dInckE',
+    },
+  ];
 };
 
 io.on('connection', (socket) => {

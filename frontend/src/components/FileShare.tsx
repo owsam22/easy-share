@@ -179,10 +179,10 @@ export default function FileShare({ socket, role, isConnected, userCount }: File
     };
 
     const handleFileChunk = (data: any) => {
-      if (isFallback) {
-         console.log('Received file chunk via Socket fallback');
-         handleIncomingData(data);
-      }
+      // Process chunks from socket unconditionally to avoid race conditions 
+      // where sender has already determined fallback is needed but receiver hasn't yet.
+      console.log('Received file data via Socket');
+      handleIncomingData(data);
     };
 
     const handleIceServers = (servers: any[]) => {
@@ -423,14 +423,24 @@ export default function FileShare({ socket, role, isConnected, userCount }: File
               </>
             )}
           </div>
-          <button 
-            onClick={() => !transferring && folderInputRef.current?.click()}
-            disabled={transferring}
-            className="w-full py-4 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"
-          >
-            <FolderPlus size={18} /> Share Folder
-            <input type="file" className="hidden" ref={folderInputRef} onChange={handleFileChange} {...({ webkitdirectory: "", directory: "" } as any)} />
-          </button>
+          <div className="flex flex-col gap-3">
+            <button 
+              onClick={() => !transferring && folderInputRef.current?.click()}
+              disabled={transferring}
+              className="w-full py-4 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 rounded-2xl font-bold flex items-center justify-center gap-2 transition-all"
+            >
+              <FolderPlus size={18} /> Share Folder
+              <input type="file" className="hidden" ref={folderInputRef} onChange={handleFileChange} {...({ webkitdirectory: "", directory: "" } as any)} />
+            </button>
+            {!isFallback && !transferring && (
+              <button 
+                onClick={() => startFallback()}
+                className="w-full py-2 text-amber-600 hover:text-amber-700 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2"
+              >
+                <RefreshCw size={12} /> Force Cloud Sync
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         <div className="w-full h-[400px] bg-slate-50 border-2 border-dashed border-slate-200 rounded-[2.5rem] flex flex-col items-center justify-center text-center p-10 relative overflow-hidden animate-in fade-in zoom-in duration-500">
