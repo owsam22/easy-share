@@ -13,4 +13,9 @@ export default defineConfig({
       '@': '/src',
     },
   },
+  define: {
+    global: 'window',
+    'process.env': {},
+    'process.version': '"v16.0.0"',
+  },
 });

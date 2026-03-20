@@ -10,6 +10,7 @@ import {
 import { socket } from '../lib/socket';
 import Header from './Header';
 import Footer from './Footer';
+import FileShare from './FileShare';
 
 function ShareContent() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -130,6 +131,24 @@ function ShareContent() {
     }
   }, [notification]);
 
+  useEffect(() => {
+    const handleShareTypeSwapped = (newType: 'text' | 'file') => {
+      setShareType(newType);
+    };
+
+    socketRef.current.on('share-type-swapped', handleShareTypeSwapped);
+    return () => {
+      socketRef.current.off('share-type-swapped', handleShareTypeSwapped);
+    };
+  }, []);
+
+  const handleShareTypeChange = (newType: 'text' | 'file') => {
+    setShareType(newType);
+    if (isConnected) {
+      socketRef.current.emit('switch-share-type', newType);
+    }
+  };
+
   const handleSend = () => {
     if (text.trim() && isConnected) {
       socketRef.current.emit('send-text', text);
@@ -205,19 +224,27 @@ function ShareContent() {
 
         <div className="flex bg-slate-100/80 p-1.5 rounded-3xl mb-12 w-fit mx-auto border border-slate-200/50 shadow-sm backdrop-blur-sm animate-in fade-in slide-in-from-top-4 duration-500">
            <button 
-            onClick={() => setShareType('text')}
-            className={`px-10 py-3 rounded-2xl font-bold text-sm transition-all duration-500 flex items-center gap-2 ${shareType === 'text' ? 'bg-white text-blue-600 shadow-xl shadow-blue-500/10' : 'text-slate-400 hover:text-slate-600'}`}
-           >
-              <ArrowRight size={16} className={shareType === 'text' ? 'opacity-100' : 'opacity-0 transition-opacity'} />
-              Text Sync
-           </button>
-           <button 
-            onClick={() => setShareType('file')}
-            className={`px-10 py-3 rounded-2xl font-bold text-sm transition-all duration-500 flex items-center gap-2 ${shareType === 'file' ? 'bg-white text-blue-600 shadow-xl shadow-blue-500/10' : 'text-slate-400 hover:text-slate-600'}`}
-           >
-              <FilePlus size={16} className={shareType === 'file' ? 'opacity-100' : 'opacity-0 transition-opacity'} />
-              File Sync
-           </button>
+            onClick={() => handleShareTypeChange('text')}
+            className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-3xl transition-all font-black uppercase tracking-widest text-xs ${
+              shareType === 'text' 
+                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' 
+                : 'bg-white/10 text-slate-400 hover:bg-white/20'
+            }`}
+          >
+            <Zap size={18} />
+            Text Sync
+          </button>
+          <button 
+            onClick={() => handleShareTypeChange('file')}
+            className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-3xl transition-all font-black uppercase tracking-widest text-xs ${
+              shareType === 'file' 
+                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/30' 
+                : 'bg-white/10 text-slate-400 hover:bg-white/20'
+            }`}
+          >
+            <FilePlus size={18} />
+            File Sync
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-12 gap-10 items-start">
@@ -294,25 +321,25 @@ function ShareContent() {
                     {isConnected && userCount >= 2 && (
                        <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-blue-600/10 border border-white min-h-[400px] flex flex-col">
                           <div className="flex items-center justify-between mb-8">
-                             <div className="flex items-center gap-3">
-                                <div className={`px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest ${role === 'sender' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                                   You are: {role}
-                                </div>
-                                {expiresAt && (
-                                   <div className="flex items-center gap-1 text-slate-400 font-bold text-[10px]">
-                                      <Clock size={12} />
-                                      {timeLeft}s
-                                   </div>
-                                )}
-                             </div>
-                             <button 
-                              onClick={switchRole}
-                              className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-800 rounded-xl transition-all border border-slate-100 shadow-sm"
-                              title="Switch Role"
-                             >
-                                <RefreshCw size={14} />
-                                <span className="text-[10px] font-extrabold uppercase tracking-widest">Switch Role</span>
-                             </button>
+                                 <div className="flex items-center gap-3">
+                                    <div className={`px-4 py-2 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 shadow-sm ${role === 'sender' ? 'bg-blue-500 text-white' : 'bg-purple-500 text-white'}`}>
+                                       <div className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                                       You are {role}
+                                    </div>
+                                    {expiresAt && (
+                                       <div className="flex items-center gap-2 text-red-500 font-bold text-[10px] uppercase tracking-tight bg-red-50 px-3 py-2 rounded-2xl border border-red-100">
+                                          <Clock size={12} />
+                                          Expires {timeLeft}s
+                                       </div>
+                                    )}
+                                 </div>
+                                 <button 
+                                   onClick={switchRole}
+                                   className="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-600 rounded-2xl transition-all border border-slate-200 shadow-sm active:scale-95 group"
+                                 >
+                                    <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
+                                    <span className="text-[10px] font-black uppercase tracking-wider">Switch Role</span>
+                                 </button>
                           </div>
 
                           <div className="flex-1 flex flex-col gap-6">
@@ -388,26 +415,17 @@ function ShareContent() {
                     )}
                  </div>
 
-                 {/* BACK: File Sync Placeholder */}
-                 <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                    <div className="bg-white p-8 md:p-10 rounded-[2.5rem] shadow-2xl shadow-blue-600/10 border border-white min-h-[400px] flex flex-col items-center justify-center text-center space-y-8">
-                       <div className="w-24 h-24 bg-blue-50 rounded-[2rem] flex items-center justify-center text-blue-500 relative">
-                          <FilePlus size={48} strokeWidth={2.5} />
-                          <div className="absolute -top-2 -right-2 px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-black uppercase tracking-widest rounded-full border-2 border-white shadow-sm">Soon</div>
-                       </div>
-                       <div className="space-y-4 max-w-xs">
-                          <h3 className="text-3xl font-black text-slate-800 uppercase tracking-tight">File Sync</h3>
-                          <p className="text-slate-500 font-medium">
-                             Drag and drop files to sync them across your devices. This feature will be available very soon!
-                          </p>
-                       </div>
-                       <div className="flex gap-2">
-                          <div className="w-2 h-2 bg-blue-200 rounded-full animate-pulse" />
-                          <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse [animation-delay:0.2s]" />
-                          <div className="w-2 h-2 bg-blue-200 rounded-full animate-pulse [animation-delay:0.4s]" />
-                       </div>
-                    </div>
-                 </div>
+                  <div className="absolute inset-0 w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
+                     <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-blue-600/10 border border-white h-full min-h-[400px]">
+                        <FileShare 
+                          socket={socketRef.current}
+                          roomId={roomId!}
+                          role={role}
+                          isConnected={isConnected}
+                          userCount={userCount}
+                        />
+                     </div>
+                  </div>
               </motion.div>
            </div>
         </div>

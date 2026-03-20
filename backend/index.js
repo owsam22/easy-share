@@ -121,6 +121,20 @@ io.on('connection', (socket) => {
     io.to(roomId).emit('notification', 'Roles switched');
   });
 
+  socket.on('signal', (data) => {
+    const roomId = socket.roomId;
+    if (roomId) {
+      socket.to(roomId).emit('signal', data);
+    }
+  });
+
+  socket.on('switch-share-type', (shareType) => {
+    const roomId = socket.roomId;
+    if (roomId) {
+      socket.to(roomId).emit('share-type-swapped', shareType);
+    }
+  });
+
   socket.on('disconnect', () => {
     const roomId = socket.roomId;
     const room = rooms.get(roomId);
