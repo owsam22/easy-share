@@ -422,7 +422,7 @@ function ShareContent() {
                                        value={text}
                                        onChange={(e) => setText(e.target.value)}
                                        placeholder="Type or paste something here..."
-                                       className="w-full flex-1 p-6 bg-slate-50 rounded-3xl border-2 border-transparent focus:border-blue-100 focus:bg-white transition-all text-xl font-medium outline-none resize-none placeholder:text-slate-300 min-h-[250px]"
+                                       className="w-full flex-1 p-6 bg-slate-50 rounded-3xl border-2 border-transparent focus:border-blue-100 focus:bg-white transition-all text-xl font-medium outline-none resize-none placeholder:text-slate-500 min-h-[250px]"
                                      />
                                      <button
                                        onClick={handlePaste}
@@ -451,11 +451,13 @@ function ShareContent() {
                                   transition={{ duration: 0.3 }}
                                   className="flex-1 flex flex-col gap-6"
                                 >
-                                  <div className={`w-full flex-1 p-8 rounded-3xl flex items-center justify-center text-center transition-all ${receivedText ? 'bg-green-50/50' : 'bg-slate-50 border-2 border-dashed border-slate-200'}`}>
+                                  <div className={`w-full flex-1 p-4 md:p-8 rounded-3xl flex items-center justify-center text-center transition-all overflow-hidden ${receivedText ? 'bg-green-50/50' : 'bg-slate-50 border-2 border-dashed border-slate-200'}`}>
                                      {receivedText ? (
-                                       <p className="text-2xl font-bold text-slate-800 break-words leading-relaxed">
-                                          {receivedText}
-                                       </p>
+                                       <div className="w-full max-h-[300px] overflow-y-auto">
+                                          <p className="text-lg md:text-2xl font-bold text-slate-800 break-all whitespace-pre-wrap leading-relaxed py-2">
+                                             {receivedText}
+                                          </p>
+                                       </div>
                                      ) : (
                                        <div className="space-y-4 opacity-40">
                                           <Bell size={40} className="mx-auto text-slate-400" />
